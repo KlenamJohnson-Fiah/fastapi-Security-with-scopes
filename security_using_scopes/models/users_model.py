@@ -1,7 +1,7 @@
-from sqlalchemy import Column,Integer,String,ForeignKey
+from sqlalchemy import Column,Integer,String
 from sqlalchemy.orm import relationship
 from ..database import Base
-from .scopes_model import Scope
+#from .scopes_model import Scope
 
 class User(Base):
     __tablename__ = "users"
@@ -11,5 +11,6 @@ class User(Base):
     email = Column(String)
     prefered_username = Column(String)
     password = Column(String)
-    scope_id = Column(Integer, ForeignKey("scopes.id"))
-    scope = relationship("Scope",back_populates="user")
+    scope =Column(String)
+    #scope_id = Column(Integer, ForeignKey("scopes.id"))
+    

@@ -34,7 +34,7 @@ def get_db():
 
 @router.post("/new_user/")#response_model= users_schema.CreateUser
 async def create_user(user:users_schema.CreateUser, db:Session = Depends(get_db)):
-    checker = crud.email_check(db=db, email=user.email)
+    checker = crud.get_user_info(db=db, email=user.email)
     if checker == None:
         encrypted_password = password_hashing.hash_password(user.password)
         final_detail = {**user.dict(), "password" : encrypted_password}
@@ -50,16 +50,13 @@ async def login_user(form_data: oauth2.OAuth2PasswordRequestForm = Depends(), db
     if password_hashing.verify_password(form_data.password,get_object_from_db.password) == True:
         raise HTTPException(status.HTTP_202_ACCEPTED,detail="password was checked right")
     access_token_expires = timedelta(minutes=password_hashing.ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = oauth2.create_access_token(data={"sub": get_object_from_db.email,"scopes": form_data.scope.id}, expires_delta=access_token_expires)
-    #print(access_token)
+    access_token = oauth2.create_access_token(data={"sub": get_object_from_db.email,"scopes": get_object_from_db.scope}, expires_delta=access_token_expires)
+    print(access_token)
     return{"access_token": access_token, "token_type": "bearer"}
     
-    """
-    else:
-        raise HTTPException(status.HTTP_203_NON_AUTHORITATIVE_INFORMATION, detail="password was wrong")
-    """
+    
 @router.get("/me/articles/")
-async def read_all_articles(articles:List[subject_schema.Subject]= Security(scopes=["me"]),db:Session = Depends(get_db)):
+async def read_all_articles(articles = Security(oauth2.get_current_user, scopes=["user:r"]),db:Session = Depends(get_db)):
     all_articles_in_db = crud.get_all_articles(db=db)
     return JSONResponse(content=all_articles_in_db)
 

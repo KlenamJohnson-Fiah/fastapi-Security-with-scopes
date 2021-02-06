@@ -13,3 +13,5 @@ class Subject(BaseModel):
 class Create_newSubject(Subject):
     pass
 
+class Read_Subjects(Subject):
+    pass

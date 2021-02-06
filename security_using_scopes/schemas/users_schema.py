@@ -3,7 +3,7 @@ from typing import Optional
 
 class User(BaseModel):
     name : str
-    scope_id : str
+    scope : str
 
     class Config:
         orm_mode = True

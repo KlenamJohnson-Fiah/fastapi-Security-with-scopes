@@ -22,7 +22,7 @@ def get_db():
 
 oauth2_scheme = OAuth2PasswordBearer(
     tokenUrl="/user/token",
-    scopes={"me": "Read information about the current user.", "items": "Read items."}
+    #scopes={"me": "Read information about the current user.", "items": "Read items."}
 )
 
 async def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
@@ -49,13 +49,14 @@ async def get_current_user(security_scopes:SecurityScopes, token:str=Depends(oau
         payload = jwt.decode(token,SECRET_KEY,algorithms=[ALGORITHM])
         username : str = payload.get("sub")
         if username is None:
-            raise redentials_exception
+            raise credentials_exception
         token_scopes = payload.get("scopes", [])
         token_data = TokenData(scopes=token_scopes, username=username)
     except (JWTError, ValidationError):
         raise credentials_exception
     user = crud.username_check(db=db,username=username)
     if user is None:
+        print("no username")
         raise credentials_exception
     for scope in security_scopes.scopes:
         if scope not in token_data.scopes:
@@ -64,11 +65,12 @@ async def get_current_user(security_scopes:SecurityScopes, token:str=Depends(oau
                 detail="Not enough permissions",
                 headers={"WWW-Authenticate": authenticate_value},
             )
+            
     return user
 
     
 
-async def get_user_scope(user_scope: User = Security(get_current_user,scopes=["me"])):
-    if user_scope.scope_id != "user:read":
+async def get_user_scope(user_scope: User = Security(get_current_user,scopes=["user:r"])):
+    if user_scope.scope != "user:r":
         raise HTTPException(status_code= 400, detail="mot user:read")
     return user_scope
